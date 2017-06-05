@@ -1,0 +1,13 @@
+[package]
+name = "stuff"
+version = "0.1.0"
+authors = ["SiIky <siiky@users.noreply.github.com>"]
+
+[dependencies]
+lazy_static = "*"
+rodio = "*"
+try_opt = "*"
+
+[dependencies.gtk]
+version = "0.1.3"
+features = ["v3_10"]
