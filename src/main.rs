@@ -2,6 +2,7 @@
 #![feature(drop_types_in_const)]
 use std::error::Error;
 use std::io::BufReader;
+use std::path::PathBuf;
 
 #[macro_use]
 extern crate serde_derive;
@@ -39,8 +40,14 @@ impl State {
         }
     }
 
+    fn get_tracks(&self) -> &Vec<&'static str> {
+        &self.tracks
+    }
+
     fn get_current_track(&self) -> Option<String> {
-        self.tracks.get(self.get_index()).map(|x| x.to_string())
+        self.get_tracks()
+            .get(self.get_index())
+            .map(|x| x.to_string())
     }
 
     fn get_index(&self) -> usize {
@@ -118,7 +125,7 @@ fn state_get_current_track() -> Option<String> {
 fn state_inc_index() -> bool {
     state_init();
     unsafe {
-       return STATE.as_mut().unwrap().inc_index();
+        return STATE.as_mut().unwrap().inc_index();
     }
 }
 
@@ -132,6 +139,11 @@ fn state_dec_index() -> bool {
 fn state_get_index() -> usize {
     state_init();
     unsafe { STATE.as_mut().unwrap().get_index() }
+}
+
+fn state_get_tracks() -> Vec<&'static str> {
+    state_init();
+    unsafe { STATE.as_mut().unwrap().get_tracks().clone() }
 }
 
 /** A struct to contain all the stuff */
@@ -381,6 +393,19 @@ impl Stuff {
     }
 }
 
+fn csv_test() {
+    let mut person: Person = Person::new("derperino".to_string());
+    for track in state_get_tracks() {
+        person.update_answer(PathBuf::from(track), "fonema1".to_string(), "qualidade1".to_string());
+    }
+
+    println!("{:#?}", person.clone());
+
+    if let Err(ref e) = person.write_to_file(PathBuf::from("test.tsv")) {
+        println!("Não foi possível escrever no ficheiro: {}", e);
+    }
+}
+
 fn main() {
     /** Initialize and open the main window */
     fn run_gtk() {
@@ -403,5 +428,5 @@ fn main() {
 
     run_gtk();
 
-    println!("shit");
+    csv_test();
 }
