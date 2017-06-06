@@ -105,7 +105,8 @@ impl Person {
                 let mut read = read_entries.unwrap();
                 tmp.append(&mut read);
             } else {
-                println!("Não foi possível ler o ficheiro: {}", read_entries.err().unwrap());
+                println!("Não foi possível ler o ficheiro: {}",
+                         read_entries.err().unwrap());
             }
 
             let mut new_entries = self.to_entries()?;

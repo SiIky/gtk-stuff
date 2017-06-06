@@ -20,62 +20,10 @@ use rodio::Source;
 mod person;
 use person::Person;
 
+mod state;
+
 /** The global state of the program */
 static mut STUFF: Option<Stuff> = None;
-
-/** Files to play */
-static mut STATE: Option<State> = None;
-
-#[derive(Clone, Debug)]
-struct State {
-    tracks: Vec<&'static str>,
-    index: usize,
-}
-
-impl State {
-    fn new(tracks: Vec<&'static str>, index: usize) -> State {
-        State {
-            tracks: tracks,
-            index: index,
-        }
-    }
-
-    fn get_tracks(&self) -> &Vec<&'static str> {
-        &self.tracks
-    }
-
-    fn get_current_track(&self) -> Option<String> {
-        self.get_tracks()
-            .get(self.get_index())
-            .map(|x| x.to_string())
-    }
-
-    fn get_index(&self) -> usize {
-        self.index
-    }
-
-    fn inc_index(&mut self) -> bool {
-        let ret = self.get_index() < (self.tracks.len() - 1);
-
-        self.index += match ret {
-            true => 1,
-            false => 0,
-        };
-
-        ret
-    }
-
-    fn dec_index(&mut self) -> bool {
-        let ret = self.get_index() > 0;
-
-        self.index -= match ret {
-            true => 1,
-            false => 0,
-        };
-
-        ret
-    }
-}
 
 fn radio_dummy(button: &RadioButton) {
     if button.get_active() {
@@ -98,52 +46,6 @@ fn play_sound(fname: &str) -> Result<(), Box<Error>> {
     let decoder = rodio::Decoder::new(BufReader::new(file))?;
     rodio::play_raw(&endpoint?, decoder.convert_samples());
     Ok(())
-}
-
-fn state_init() {
-    unsafe {
-        if STATE.is_none() {
-            STATE =
-                Some(State::new(vec!["/home/silky/Music/rush/2112/01-2112_.flac",
-                                     "/home/silky/Music/rush/2112/02-a_passage_to_bangkok.flac",
-                                     "/home/silky/Music/rush/2112/03-the_twilight_zone.flac",
-                                     "/home/silky/Music/rush/2112/04-lessons.flac",
-                                     "/home/silky/Music/rush/2112/05-tears.flac",
-                                     "/home/silky/Music/rush/2112/06-something_for_nothing.flac"],
-                                0));
-        }
-    }
-}
-
-fn state_get_current_track() -> Option<String> {
-    state_init();
-    unsafe {
-        return STATE.as_mut().unwrap().get_current_track();
-    }
-}
-
-fn state_inc_index() -> bool {
-    state_init();
-    unsafe {
-        return STATE.as_mut().unwrap().inc_index();
-    }
-}
-
-fn state_dec_index() -> bool {
-    state_init();
-    unsafe {
-        return STATE.as_mut().unwrap().dec_index();
-    }
-}
-
-fn state_get_index() -> usize {
-    state_init();
-    unsafe { STATE.as_mut().unwrap().get_index() }
-}
-
-fn state_get_tracks() -> Vec<&'static str> {
-    state_init();
-    unsafe { STATE.as_mut().unwrap().get_tracks().clone() }
 }
 
 /** A struct to contain all the stuff */
@@ -315,18 +217,18 @@ impl Stuff {
             }
             fn back(button: &Button) {
                 control_dummy(button);
-                println!("{}: {}", state_dec_index(), state_get_index());
+                println!("{}: {}", state::dec_index(), state::get_index());
             }
             fn play(button: &Button) {
                 control_dummy(button);
-                if let Some(ref track) = state_get_current_track() {
+                if let Some(ref track) = state::get_current_track() {
                     println!("{}", track);
                     let _: Result<(), Box<Error>> = play_sound(track);
                 }
             }
             fn next(button: &Button) {
                 control_dummy(button);
-                println!("{}: {}", state_inc_index(), state_get_index());
+                println!("{}: {}", state::inc_index(), state::get_index());
             }
             ret.control_button_back = try_opt!(init_button(builder, "control_button_back", back));
             ret.control_button_play = try_opt!(init_button(builder, "control_button_play", play));
@@ -382,6 +284,7 @@ impl Stuff {
             ret.file_loader_window = try_opt!(builder.get_object("file_loader_window"));
             ret.file_loader_cancel_button =
                 try_opt!(builder.get_object("file_loader_cancel_button"));
+            ret.file_loader_cancel_button.connect_clicked(|_| {});
             ret.file_loader_open_button = try_opt!(builder.get_object("file_loader_open_button"));
             /* File saver */
             ret.file_saver_window = try_opt!(builder.get_object("file_saver_window"));
@@ -395,8 +298,10 @@ impl Stuff {
 
 fn csv_test() {
     let mut person: Person = Person::new("derperino".to_string());
-    for track in state_get_tracks() {
-        person.update_answer(PathBuf::from(track), "fonema1".to_string(), "qualidade1".to_string());
+    for track in state::get_tracks() {
+        person.update_answer(PathBuf::from(track),
+                             "fonema1".to_string(),
+                             "qualidade1".to_string());
     }
 
     println!("{:#?}", person.clone());
