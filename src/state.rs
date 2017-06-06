@@ -1,5 +1,5 @@
 /** Files to play */
-pub static mut STATE: Option<State> = None;
+static mut STATE: Option<State> = None;
 
 #[derive(Clone, Debug)]
 pub struct State {
@@ -69,23 +69,17 @@ pub fn init() {
 
 pub fn get_current_track() -> Option<String> {
     init();
-    unsafe {
-        return STATE.as_mut().unwrap().get_current_track();
-    }
+    unsafe { STATE.as_mut().unwrap().get_current_track() }
 }
 
 pub fn inc_index() -> bool {
     init();
-    unsafe {
-        return STATE.as_mut().unwrap().inc_index();
-    }
+    unsafe { STATE.as_mut().unwrap().inc_index() }
 }
 
 pub fn dec_index() -> bool {
     init();
-    unsafe {
-        return STATE.as_mut().unwrap().dec_index();
-    }
+    unsafe { STATE.as_mut().unwrap().dec_index() }
 }
 
 pub fn get_index() -> usize {
@@ -93,7 +87,7 @@ pub fn get_index() -> usize {
     unsafe { STATE.as_mut().unwrap().get_index() }
 }
 
-pub fn get_tracks() -> Vec<&'static str> {
+pub fn get_tracks() -> &'static Vec<&'static str> {
     init();
-    unsafe { STATE.as_mut().unwrap().get_tracks().clone() }
+    unsafe { &STATE.as_mut().unwrap().get_tracks() }
 }
