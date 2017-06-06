@@ -331,9 +331,7 @@ fn main() {
         }
     }
 
-    if gtk::init().is_err() {
-        panic!("Não foi possível inicializar GTK.");
-    }
+    gtk::init().expect("Não foi possível inicializar GTK.");
 
     run_gtk();
 
