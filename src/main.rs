@@ -1,36 +1,73 @@
+#![allow(dead_code)]
 #![feature(drop_types_in_const)]
 use std::error::Error;
 use std::io::BufReader;
+
+#[macro_use]
+extern crate serde_derive;
+
+#[macro_use]
+extern crate try_opt;
 
 extern crate gtk;
 use gtk::prelude::*;
 use gtk::{Builder, Button, Entry, MenuItem, RadioButton, Window};
 
-#[macro_use]
-extern crate lazy_static;
-
 extern crate rodio;
 use rodio::Source;
 
-#[macro_use]
-extern crate try_opt;
-
-/** Index of the file to play */
-static mut CURRENT: usize = 0;
+mod person;
+use person::Person;
 
 /** The global state of the program */
 static mut STUFF: Option<Stuff> = None;
 
-lazy_static! {
-    /** Files to play */
-    static ref TRACKS: Vec<&'static str> = vec![
-        "/home/silky/Music/rush/2112/01-2112_.flac",
-       "/home/silky/Music/rush/2112/02-a_passage_to_bangkok.flac",
-       "/home/silky/Music/rush/2112/03-the_twilight_zone.flac",
-       "/home/silky/Music/rush/2112/04-lessons.flac",
-       "/home/silky/Music/rush/2112/05-tears.flac",
-       "/home/silky/Music/rush/2112/06-something_for_nothing.flac"
-    ];
+/** Files to play */
+static mut STATE: Option<State> = None;
+
+#[derive(Clone, Debug)]
+struct State {
+    tracks: Vec<&'static str>,
+    index: usize,
+}
+
+impl State {
+    fn new(tracks: Vec<&'static str>, index: usize) -> State {
+        State {
+            tracks: tracks,
+            index: index,
+        }
+    }
+
+    fn get_current_track(&self) -> Option<String> {
+        self.tracks.get(self.get_index()).map(|x| x.to_string())
+    }
+
+    fn get_index(&self) -> usize {
+        self.index
+    }
+
+    fn inc_index(&mut self) -> bool {
+        let ret = self.get_index() < (self.tracks.len() - 1);
+
+        self.index += match ret {
+            true => 1,
+            false => 0,
+        };
+
+        ret
+    }
+
+    fn dec_index(&mut self) -> bool {
+        let ret = self.get_index() > 0;
+
+        self.index -= match ret {
+            true => 1,
+            false => 0,
+        };
+
+        ret
+    }
 }
 
 fn radio_dummy(button: &RadioButton) {
@@ -54,6 +91,47 @@ fn play_sound(fname: &str) -> Result<(), Box<Error>> {
     let decoder = rodio::Decoder::new(BufReader::new(file))?;
     rodio::play_raw(&endpoint?, decoder.convert_samples());
     Ok(())
+}
+
+fn state_init() {
+    unsafe {
+        if STATE.is_none() {
+            STATE =
+                Some(State::new(vec!["/home/silky/Music/rush/2112/01-2112_.flac",
+                                     "/home/silky/Music/rush/2112/02-a_passage_to_bangkok.flac",
+                                     "/home/silky/Music/rush/2112/03-the_twilight_zone.flac",
+                                     "/home/silky/Music/rush/2112/04-lessons.flac",
+                                     "/home/silky/Music/rush/2112/05-tears.flac",
+                                     "/home/silky/Music/rush/2112/06-something_for_nothing.flac"],
+                                0));
+        }
+    }
+}
+
+fn state_get_current_track() -> Option<String> {
+    state_init();
+    unsafe {
+        return STATE.as_mut().unwrap().get_current_track();
+    }
+}
+
+fn state_inc_index() -> bool {
+    state_init();
+    unsafe {
+       return STATE.as_mut().unwrap().inc_index();
+    }
+}
+
+fn state_dec_index() -> bool {
+    state_init();
+    unsafe {
+        return STATE.as_mut().unwrap().dec_index();
+    }
+}
+
+fn state_get_index() -> usize {
+    state_init();
+    unsafe { STATE.as_mut().unwrap().get_index() }
 }
 
 /** A struct to contain all the stuff */
@@ -225,28 +303,18 @@ impl Stuff {
             }
             fn back(button: &Button) {
                 control_dummy(button);
-                unsafe {
-                    if CURRENT > 0 {
-                        CURRENT -= 1;
-                    }
-                    println!("{}", CURRENT);
-                }
+                println!("{}: {}", state_dec_index(), state_get_index());
             }
             fn play(button: &Button) {
                 control_dummy(button);
-                unsafe {
-                    println!("{}", TRACKS[CURRENT]);
-                    let _: Result<(), Box<Error>> = play_sound(TRACKS[CURRENT]);
+                if let Some(ref track) = state_get_current_track() {
+                    println!("{}", track);
+                    let _: Result<(), Box<Error>> = play_sound(track);
                 }
             }
             fn next(button: &Button) {
                 control_dummy(button);
-                unsafe {
-                    if CURRENT < TRACKS.len() - 1 {
-                        CURRENT += 1;
-                    }
-                    println!("{}", CURRENT);
-                }
+                println!("{}: {}", state_inc_index(), state_get_index());
             }
             ret.control_button_back = try_opt!(init_button(builder, "control_button_back", back));
             ret.control_button_play = try_opt!(init_button(builder, "control_button_play", play));

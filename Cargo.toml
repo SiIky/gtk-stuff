@@ -4,8 +4,10 @@ version = "0.1.0"
 authors = ["SiIky <siiky@users.noreply.github.com>"]
 
 [dependencies]
-lazy_static = "*"
+csv = "1.0.0-beta.3"
 rodio = "*"
+serde = "1"
+serde_derive = "1"
 try_opt = "*"
 
 [dependencies.gtk]
