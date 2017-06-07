@@ -17,22 +17,22 @@ use person::Person;
 mod state;
 mod stuff;
 
-fn csv_test() {
-    let mut person: Person = Person::new("derperino".to_string());
-    for track in state::get_tracks() {
-        person.update_answer(PathBuf::from(track),
-                             "fonema1".to_string(),
-                             "qualidade1".to_string());
-    }
-
-    println!("{:#?}", person.clone());
-
-    if let Err(ref e) = person.write_to_file(PathBuf::from("test.tsv")) {
-        println!("Não foi possível escrever no ficheiro: {}", e);
-    }
-}
-
 fn main() {
+    fn csv_test() {
+        let mut person: Person = Person::new("derperino".to_string());
+        for track in state::get_tracks() {
+            person.update_answer(PathBuf::from(track),
+                                 "fonema1".to_string(),
+                                 "qualidade1".to_string());
+        }
+
+        println!("{:#?}", person.clone());
+
+        if let Err(ref e) = person.write_to_file(PathBuf::from("test.tsv")) {
+            println!("Não foi possível escrever no ficheiro: {}", e);
+        }
+    }
+
     /** Initialize and open the main window */
     fn run_gtk() {
         gtk::init().expect("Não foi possível inicializar GTK.");

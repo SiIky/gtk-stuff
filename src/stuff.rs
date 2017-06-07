@@ -36,6 +36,7 @@ fn play_sound(fname: &str) -> Result<(), Box<Error>> {
     rodio::play_raw(&endpoint?, decoder.convert_samples());
     Ok(())
 }
+
 /** A struct to contain all the stuff */
 #[derive(Debug, Clone)]
 struct Stuff {
@@ -272,11 +273,14 @@ impl Stuff {
             ret.file_loader_window = try_opt!(builder.get_object("file_loader_window"));
             ret.file_loader_cancel_button =
                 try_opt!(builder.get_object("file_loader_cancel_button"));
-            ret.file_loader_cancel_button.connect_clicked(|_| {});
+            ret.file_loader_cancel_button
+                .connect_clicked(file_load_cancel_action);
             ret.file_loader_open_button = try_opt!(builder.get_object("file_loader_open_button"));
             /* File saver */
             ret.file_saver_window = try_opt!(builder.get_object("file_saver_window"));
             ret.file_saver_cancel_button = try_opt!(builder.get_object("file_saver_cancel_button"));
+            ret.file_saver_cancel_button
+                .connect_clicked(file_save_cancel_action);
             ret.file_saver_save_button = try_opt!(builder.get_object("file_saver_save_button"));
         }
 
@@ -284,10 +288,26 @@ impl Stuff {
     }
 }
 
+fn file_save_cancel_action(_ignore: &Button) {
+    init().expect("save_window fucked");
+    unsafe {
+        STUFF.as_mut().unwrap().file_saver_window.hide();
+    }
+}
+
+fn file_load_cancel_action(_ignore: &Button) {
+    init().expect("load_window fucked");
+    unsafe {
+        STUFF.as_mut().unwrap().file_loader_window.hide();
+    }
+}
+
 pub fn init() -> Result<&'static Window, Box<Error>> {
     unsafe {
-        /* Make sure `STUFF` is initialized so it can be used later */
-        STUFF = Stuff::init();
+        if STUFF.is_none() {
+            /* Make sure `STUFF` is initialized so it can be used later */
+            STUFF = Stuff::init();
+        }
         if let Some(ref stuff) = STUFF {
             Ok(&stuff.main_window)
         } else {
