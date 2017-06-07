@@ -15,6 +15,10 @@ impl State {
         }
     }
 
+    fn len(&self) -> usize {
+        self.tracks.len()
+    }
+
     fn get_tracks(&self) -> &Vec<&'static str> {
         &self.tracks
     }
@@ -29,26 +33,35 @@ impl State {
         self.index
     }
 
-    fn inc_index(&mut self) -> bool {
-        let ret = self.get_index() < (self.tracks.len() - 1);
-
-        self.index += match ret {
-            true => 1,
-            false => 0,
-        };
-
-        ret
+    fn set_index(&mut self, index: usize) -> Option<usize> {
+        match index < self.len() {
+            false => None,
+            true => {
+                let ret = self.index;
+                self.index = index;
+                Some(ret)
+            }
+        }
     }
 
-    fn dec_index(&mut self) -> bool {
+    fn inc_index(&mut self) -> Option<usize> {
+        let ret = self.get_index() < (self.tracks.len() - 1);
+        let index = self.index +
+                    match ret {
+                        true => 1,
+                        false => 0,
+                    };
+        self.set_index(index)
+    }
+
+    fn dec_index(&mut self) -> Option<usize> {
         let ret = self.get_index() > 0;
-
-        self.index -= match ret {
-            true => 1,
-            false => 0,
-        };
-
-        ret
+        let index = self.index -
+                    match ret {
+                        true => 1,
+                        false => 0,
+                    };
+        self.set_index(index)
     }
 }
 
@@ -72,12 +85,12 @@ pub fn get_current_track() -> Option<String> {
     unsafe { STATE.as_mut().unwrap().get_current_track() }
 }
 
-pub fn inc_index() -> bool {
+pub fn inc_index() -> Option<usize> {
     init();
     unsafe { STATE.as_mut().unwrap().inc_index() }
 }
 
-pub fn dec_index() -> bool {
+pub fn dec_index() -> Option<usize> {
     init();
     unsafe { STATE.as_mut().unwrap().dec_index() }
 }

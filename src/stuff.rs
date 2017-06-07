@@ -40,6 +40,10 @@ fn play_sound(fname: &str) -> Result<(), Box<Error>> {
 /** A struct to contain all the stuff */
 #[derive(Debug, Clone)]
 struct Stuff {
+    /** Tracks to play */
+    tracks: Vec<&'static str>,
+    /** Track number */
+    index: usize,
     /** The main window */
     main_window: Window,
     /** The open option on the file menu */
@@ -99,12 +103,16 @@ impl Stuff {
     fn new() -> Stuff {
         let button: Button = Button::new();
         let entry: Entry = Entry::new();
+        let index: usize = 0;
         let menu_item: MenuItem = MenuItem::new();
         let popup_window: Window = Window::new(gtk::WindowType::Popup);
         let radio_button: RadioButton = RadioButton::new(&[]);
         let top_window: Window = Window::new(gtk::WindowType::Toplevel);
+        let tracks: Vec<&'static str> = Vec::new();
 
         Stuff {
+            tracks: tracks,
+            index: index,
             main_window: top_window.clone(),
             file_menu_open: menu_item.clone(),
             file_menu_save: menu_item.clone(),
@@ -136,6 +144,20 @@ impl Stuff {
 
     /** Initializes a `Stuff` */
     fn init() -> Option<Stuff> {
+        fn init_button<F>(builder: &Builder, id: &str, f: F) -> Option<Button>
+            where F: Fn(&Button) + 'static
+        {
+            let ret: Button = try_opt!(builder.get_object(id));
+            ret.connect_clicked(f);
+            Some(ret)
+        }
+        fn init_menu_item<F>(builder: &Builder, id: &str, f: F) -> Option<MenuItem>
+            where F: Fn(&MenuItem) + 'static
+        {
+            let ret: MenuItem = try_opt!(builder.get_object(id));
+            ret.connect_activate(f);
+            Some(ret)
+        }
         fn init_radio_button<F>(builder: &Builder, id: &str, f: F) -> Option<RadioButton>
             where F: Fn(&RadioButton) + 'static
         {
@@ -197,16 +219,9 @@ impl Stuff {
 
         /* Control buttons */
         {
-            fn init_button<F>(builder: &Builder, id: &str, f: F) -> Option<Button>
-                where F: Fn(&Button) + 'static
-            {
-                let ret: Button = try_opt!(builder.get_object(id));
-                ret.connect_clicked(f);
-                Some(ret)
-            }
             fn back(button: &Button) {
                 control_dummy(button);
-                println!("{}: {}", state::dec_index(), state::get_index());
+                println!("{:?}: {}", state::dec_index(), state::get_index());
             }
             fn play(button: &Button) {
                 control_dummy(button);
@@ -217,7 +232,7 @@ impl Stuff {
             }
             fn next(button: &Button) {
                 control_dummy(button);
-                println!("{}: {}", state::inc_index(), state::get_index());
+                println!("{:?}: {}", state::inc_index(), state::get_index());
             }
             ret.control_button_back = try_opt!(init_button(builder, "control_button_back", back));
             ret.control_button_play = try_opt!(init_button(builder, "control_button_play", play));
@@ -226,13 +241,6 @@ impl Stuff {
 
         /* File menu buttons */
         {
-            fn init_menu_item<F>(builder: &Builder, id: &str, f: F) -> Option<MenuItem>
-                where F: Fn(&MenuItem) + 'static
-            {
-                let ret: MenuItem = try_opt!(builder.get_object(id));
-                ret.connect_activate(f);
-                Some(ret)
-            }
             fn open(_button: &MenuItem) {
                 println!("open");
                 unsafe {
