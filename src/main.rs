@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 #![feature(drop_types_in_const)]
-use std::path::PathBuf;
+//use std::path::PathBuf;
 
 extern crate gtk;
 use gtk::WidgetExt;
@@ -12,12 +12,12 @@ extern crate serde_derive;
 extern crate try_opt;
 
 mod person;
-use person::Person;
+//use person::Person;
 
-mod state;
 mod stuff;
 
 fn main() {
+    /*
     fn csv_test() {
         let mut person: Person = Person::new("derperino".to_string());
         for track in state::get_tracks() {
@@ -32,17 +32,18 @@ fn main() {
             println!("Não foi possível escrever no ficheiro: {}", e);
         }
     }
+    */
 
-    /** Initialize and open the main window */
+    #[doc = "Initialize and open the main window"]
     fn run_gtk() {
         gtk::init().expect("Não foi possível inicializar GTK.");
-        let main_window: &gtk::Window = stuff::init().unwrap_or_else(|e| panic!("{}", e));
+        let s: &stuff::Stuff = stuff::init().unwrap_or_else(|e| panic!("{}", e));
         /* open the main window */
-        main_window.show_all();
+        s.main_window.show_all();
         /* The GTK main loop */
         gtk::main();
     }
 
     run_gtk();
-    csv_test();
+    //csv_test();
 }

@@ -10,21 +10,21 @@ type Name = String;
 type Phoneme = String;
 type Quality = String;
 
-/** The `Entry` type. */
+#[doc = "The `Entry` type."]
 #[derive(Clone, Debug, Deserialize, Serialize)]
-struct Entry {
+pub struct Entry {
     #[serde(rename = "Nome")]
-    name: Name,
+    pub name: Name,
     #[serde(rename = "Ficheiro")]
-    path: PathBuf,
+    pub path: PathBuf,
     #[serde(rename = "Fonema")]
-    phoneme: Phoneme,
+    pub phoneme: Phoneme,
     #[serde(rename = "Qualidade")]
-    quality: Quality,
+    pub quality: Quality,
 }
 
 impl Entry {
-    fn new(name: Name, path: PathBuf, phoneme: Phoneme, quality: Quality) -> Entry {
+    pub fn new(name: Name, path: PathBuf, phoneme: Phoneme, quality: Quality) -> Entry {
         Entry {
             name: name,
             path: path,
@@ -34,7 +34,7 @@ impl Entry {
     }
 }
 
-/** The `Person` type. */
+#[doc = "The `Person` type."]
 #[derive(Clone, Debug)]
 pub struct Person {
     pub name: Name,
@@ -43,7 +43,7 @@ pub struct Person {
 
 /* Private Methods */
 impl Person {
-    /** Convert a `Person` to a `Vec<Entry>`, returning error if name is empty */
+    #[doc = "Convert a `Person` to a `Vec<Entry>`, returning error if name is empty"]
     fn to_entries(&self) -> Result<Vec<Entry>, Box<Error>> {
         let mut ret = if self.name.is_empty() {
             Err(From::from("Nome está vazio."))
@@ -55,10 +55,12 @@ impl Person {
 
         if let Ok(ref mut vec) = ret {
             for (key, val) in self.answers.iter() {
-                vec.push(Entry::new(self.name.clone(),
-                                    key.to_owned(),
-                                    val.0.to_owned(),
-                                    val.1.to_owned()));
+                vec.push(Entry::new(
+                    self.name.clone(),
+                    key.to_owned(),
+                    val.0.to_owned(),
+                    val.1.to_owned(),
+                ));
             }
         }
 
@@ -66,9 +68,7 @@ impl Person {
     }
 
     fn read_file(&self, fname: &PathBuf) -> Result<Vec<Entry>, Box<Error>> {
-        let mut rdr = csv::ReaderBuilder::new()
-            .delimiter(b'\t')
-            .from_path(&fname)?;
+        let mut rdr = csv::ReaderBuilder::new().delimiter(b'\t').from_path(&fname)?;
 
         let mut ret = Vec::new();
 
@@ -82,7 +82,7 @@ impl Person {
 
 /* Public methods */
 impl Person {
-    /** Create a new `Person` */
+    #[doc = "Create a new `Person`"]
     pub fn new(name: String) -> Person {
         Person {
             name: name,
@@ -90,12 +90,12 @@ impl Person {
         }
     }
 
-    /** Update one of the answers */
+    #[doc = "Update one of the answers"]
     pub fn update_answer(&mut self, path: PathBuf, ph: Phoneme, q: Quality) -> Option<Answer> {
         self.answers.insert(path, (ph, q))
     }
 
-    /** Write a person to file */
+    #[doc = "Write a person to file"]
     pub fn write_to_file(&self, fname: PathBuf) -> Result<(), Box<Error>> {
         let entries = {
             let mut tmp = Vec::new();
@@ -105,8 +105,10 @@ impl Person {
                 let mut read = read_entries.unwrap();
                 tmp.append(&mut read);
             } else {
-                println!("Não foi possível ler o ficheiro: {}",
-                         read_entries.err().unwrap());
+                println!(
+                    "Não foi possível ler o ficheiro: {}",
+                    read_entries.err().unwrap()
+                );
             }
 
             let mut new_entries = self.to_entries()?;
