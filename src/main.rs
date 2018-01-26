@@ -1,6 +1,4 @@
 #![allow(dead_code)]
-#![feature(drop_types_in_const)]
-//use std::path::PathBuf;
 
 extern crate gtk;
 use gtk::WidgetExt;

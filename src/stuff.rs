@@ -429,7 +429,7 @@ pub fn get_tracks() -> Vec<PathBuf> {
 pub fn set_fonema(entry: &mut person::Entry, txt: String) {}
 
 pub fn update_fonema(txt: String) -> Option<()> {
-    let track = try_opt!(get_current_track());
+    let _ = try_opt!(get_current_track());
     Some(())
 }
 
